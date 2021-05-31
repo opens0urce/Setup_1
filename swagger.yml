@@ -1,0 +1,447 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: ReadBytes API
+  license:
+    name: MANNING
+servers:
+  - url: http://readbytes.apisecurity.liveproject.manning.com/v1
+paths:
+  /users:
+    get:
+      summary: List all Users
+      operationId: listUsers
+      tags:
+        - users
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at one time (max 100)
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: A paged array of users
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: create a User
+      operationId: createUser
+      tags:
+        - users
+      requestBody:
+        description: Send the User Object
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: Null response
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /users/{userId}:
+    get:
+      summary: Info for a specific user
+      operationId: showUserById
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The id of the user to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /users/{userId}/2fa:
+    post:
+      summary: Enable or Disable 2 Factor Authentication for the User
+      operationId: enable2FA
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The id of the user to which 2fa is being enabled/disabled.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /readbytes:
+    get:
+      summary: List all read bytes aka items such as news, articles, blogs
+      operationId: listReadBytes
+      tags:
+        - readbytes
+      parameters:
+        - name: status
+          in: query
+          description: tags related to topics of interest news,sports,tech,art
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: How many items to return at one time (max 100)
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: A paged array of read bytes
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadBytes"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /login:
+    post:
+      summary: Login User
+      operationId: login
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                emailId: # <!--- form field name
+                  type: string
+                password: # <!--- form field name
+                  type: string
+              required:
+                - emailId
+                - password
+      responses:
+        '200':
+          description: Login response
+          content:
+            text/plain:
+              schema:
+                type: boolean
+                example: true for User Login success.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /login_2fa:
+    post:
+      summary: Login User with 2-factor authentication OTP
+      operationId: login_2fa
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                emailId: # <!--- form field name
+                  type: string
+                password: # <!--- form field name
+                  type: string
+                otp: # <!--- form field name
+                  type: string
+              required:
+                - emailId
+                - password
+                - otp
+      responses:
+        '200':
+          description: Login response
+          content:
+            text/plain:
+              schema:
+                type: boolean
+                example: true for User Login success.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /tokensignin:
+    post:
+      summary: Token Based Sign In for User used in Google Sign or OpenID Connect
+      operationId: tokenSignIn
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: string
+              properties:
+                idToken: # <!--- form field name
+                  type: string
+              required:
+                - idToken
+      responses:
+        '200':
+          description: Login response
+          content:
+            text/plain:
+              schema:
+                type: boolean
+                example: true for User Login success.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /token_2fa_signin:
+    post:
+      summary: Token Based Sign In for User used in Google Sign along with OTP
+      operationId: token2FASignIn
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: string
+              properties:
+                idToken: # <!--- form field name
+                  type: string
+                otp: # <!--- form field name
+                  type: string
+              required:
+                - idToken
+                - otp
+      responses:
+        '200':
+          description: Login response
+          content:
+            text/plain:
+              schema:
+                type: boolean
+                example: true for User Login success.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /logout:
+    post:
+      summary: User Logout flow
+      operationId: logout
+      tags:
+        - users
+      responses:
+        '200':
+          description: Logout response
+          content:
+            text/plain:
+              schema:
+                type: boolean
+                example: true for User Logout success.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /changePassword:
+    post:
+      summary: Change Password Flow
+      operationId: changePassword
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                oldPassword: # <!--- form field name
+                  type: string
+                newPassword: # <!--- form field name
+                  type: string
+              required:
+                - oldPassword
+                - newPassword
+      responses:
+        '200':
+          description: Change Password response
+          content:
+            text/plain:
+              schema:
+                type: boolean
+                example: true for User Password Change success.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  securitySchemes:
+    basicAuth: # <-- arbitrary name for the security scheme
+      type: http
+      scheme: basic
+  responses:
+    UnauthorizedError:
+      description: Authentication information is missing or invalid
+      headers:
+        WWW_Authenticate:
+          schema:
+            type: string
+  schemas:
+    User:
+      type: object
+      required:
+        - name
+        - phone
+      properties:
+        id:
+          type: integer
+          format: int64
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailId:
+          type: string
+        age:
+          type: integer
+          format: int64
+        phone:
+          type: string
+        password:
+          type: string
+        address:
+          type: string
+        2fa:
+          type: boolean
+        tag:
+          type: string
+    ReadByte:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+        tag:
+          type: string
+          description: tag to determine the type of the blog i.e. sports,news,tech,art etc.
+        url:
+          type: string
+          description: URL of the original link
+        title:
+          type: string
+          description: Title of the original article
+        description:
+          type: string
+          description: brief description of the content in the URL
+    ReadBytes:
+      type: array
+      items:
+        $ref: "#/components/schemas/ReadByte"
+    Users:
+      type: array
+      items:
+        $ref: "#/components/schemas/User"
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+security:
+  - basicAuth: [ ]
